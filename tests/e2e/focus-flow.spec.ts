@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
+import { randomUUID } from "node:crypto";
 
 test("user can register, plan a session, save stats, and persist notes", async ({ page }) => {
   await page.goto("/");
 
   await page.getByRole("button", { name: "Create" }).click();
   await page.getByPlaceholder("Your name").fill("Mira");
-  await page.getByPlaceholder("you@example.com").fill(`mira-${Date.now()}@example.local`);
+  await page.getByPlaceholder("you@example.com").fill(`mira-${randomUUID()}@example.local`);
   await page.getByPlaceholder("8 characters minimum").fill("password123");
   await page.getByRole("button", { name: "Create account" }).click();
 
@@ -50,7 +51,7 @@ test("dashboard fits on mobile without horizontal overflow", async ({ page }) =>
 
   await page.getByRole("button", { name: "Create" }).click();
   await page.getByPlaceholder("Your name").fill("Noor");
-  await page.getByPlaceholder("you@example.com").fill(`noor-${Date.now()}@example.local`);
+  await page.getByPlaceholder("you@example.com").fill(`noor-${randomUUID()}@example.local`);
   await page.getByPlaceholder("8 characters minimum").fill("password123");
   await page.getByRole("button", { name: "Create account" }).click();
 
