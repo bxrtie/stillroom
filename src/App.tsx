@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
 import { Check, Circle, Lock, LogOut, Moon, Pause, Play, Plus, Radio, Sun, Trash2, UserPlus } from "lucide-react";
 import { api } from "./api";
 import type { AuthUser, DashboardState, Note, Task, TaskPriority, ThemePreference } from "./types";
@@ -184,8 +184,7 @@ export default function App() {
   };
 
   const saveNote = async (note: Note) => {
-    const result = await api.updateNote(note.id, { title: note.title, body: note.body, pinned: note.pinned });
-    applyState(result.state);
+    await api.updateNote(note.id, { title: note.title, body: note.body, pinned: note.pinned });
   };
 
   const deleteNote = async (note: Note) => {
@@ -226,13 +225,13 @@ export default function App() {
 
       <section className="hero">
         <div><span>Level {state.signal.level}</span><h2>{activeTask?.title ?? `Set the signal, ${state.user.name}`}</h2><p>{intention || "Choose one reason, run one session, leave a visible trail."}</p></div>
-        <div className={running ? "beacon-card live" : "beacon-card"}><div className="rings"><i /><i /><i /></div><div className="beacon" style={{ "--charge": `${state.signal.charge}%` } as React.CSSProperties}><Radio size={34} /><strong>{state.signal.charge}%</strong></div><div className="path">{state.signal.dailyPath.map((done, i) => <button className={done ? "done" : ""} title={state.signal.dailyPathLabels[i]} key={state.signal.dailyPathLabels[i]}>{i + 1}</button>)}</div></div>
+        <div className={running ? "beacon-card live" : "beacon-card"}><div className="rings"><i /><i /><i /></div><div className="beacon" style={{ "--charge": `${state.signal.charge}%` } as CSSProperties}><Radio size={34} /><strong>{state.signal.charge}%</strong></div><div className="path">{state.signal.dailyPath.map((done, i) => <button className={done ? "done" : ""} title={state.signal.dailyPathLabels[i]} key={state.signal.dailyPathLabels[i]}>{i + 1}</button>)}</div></div>
       </section>
 
       <section className="grid">
         <section className="panel focus-panel">
           <div className="panel-head"><div><span>{timerMode}</span><h2>Focus timer</h2></div><div className="segmented small"><button className={timerMode === "focus" ? "active" : ""} onClick={() => setTimerMode("focus")}>Focus</button><button className={timerMode === "break" ? "active" : ""} onClick={() => setTimerMode("break")}>Break</button></div></div>
-          <div className="timer" style={{ "--progress": `${progress}deg` } as React.CSSProperties}><div><span>{timerMode === "focus" ? "Signal" : "Reset"}</span><strong>{timerText(secondsLeft)}</strong><small>{activeTask?.title ?? "Free focus"}</small></div></div>
+          <div className="timer" style={{ "--progress": `${progress}deg` } as CSSProperties}><div><span>{timerMode === "focus" ? "Signal" : "Reset"}</span><strong>{timerText(secondsLeft)}</strong><small>{activeTask?.title ?? "Free focus"}</small></div></div>
           <label className="field"><span>Session reason</span><input value={intention} onChange={(event) => setIntention(event.target.value)} placeholder="What should this session make easier?" maxLength={160} /></label>
           <div className="controls"><button className="primary" onClick={() => setRunning(!running)}>{running ? <Pause size={18} /> : <Play size={18} />}{running ? "Pause" : "Start"}</button><button onClick={() => { setRunning(false); setSecondsLeft(totalSeconds); }}>Reset</button><button title="Complete" onClick={() => void completeSession()}><Check size={18} /></button></div>
         </section>
@@ -241,7 +240,7 @@ export default function App() {
 
         <aside className="rail"><section className="panel"><div className="panel-head"><div><span>Today</span><h2>{goalProgress}% lit</h2></div></div><div className="metrics"><div className="metric"><span>Today</span><strong>{minutes(state.stats.todayMinutes)}</strong><small>{minutes(settings.dailyGoalMinutes)} target</small></div><div className="metric"><span>Streak</span><strong>{state.stats.streak}</strong><small>days</small></div><div className="metric"><span>Level</span><strong>{state.signal.level}</strong><small>{minutes(state.signal.nextLevelMinutes)} left</small></div><div className="metric"><span>Done</span><strong>{state.stats.tasksCompletedToday}</strong><small>{state.stats.openTaskCount} open</small></div></div></section><section className="panel"><div className="panel-head"><div><span>Sound</span><h2>Ambient</h2></div></div><div className="sound"><button>Rain</button><button>Cafe</button><button>Noise</button><button>Waves</button></div></section></aside>
 
-        <section className="panel notes"><div className="panel-head"><div><span>Scratchpad</span><h2>Notes</h2></div><button title="New note" onClick={() => void createNote()}><Plus size={18} /></button></div><div className="notes-grid">{state.notes.length === 0 && <div className="empty">No notes yet.</div>}{state.notes.map((note) => <article className="note" key={note.id}><div><button title={note.pinned ? "Unpin note" : "Pin note"} onClick={() => void saveNote({ ...note, pinned: !note.pinned })}>Pin</button><button title="Delete note" onClick={() => void deleteNote(note)}><Trash2 size={15} /></button></div><input className="note-title" aria-label="Note title" value={note.title} onChange={(event) => updateLocalNote(note.id, { title: event.target.value })} onBlur={() => void saveNote(note)} /><textarea aria-label="Note body" value={note.body} onChange={(event) => updateLocalNote(note.id, { body: event.target.value })} onBlur={() => void saveNote(note)} placeholder="Capture the thread" /></article>)}</div></section>
+        <section className="panel notes"><div className="panel-head"><div><span>Scratchpad</span><h2>Notes</h2></div><button title="New note" onClick={() => void createNote()}><Plus size={18} /></button></div><div className="notes-grid">{state.notes.length === 0 && <div className="empty">No notes yet.</div>}{state.notes.map((note) => <article className="note note-card" key={note.id}><div><button title={note.pinned ? "Unpin note" : "Pin note"} onClick={() => { updateLocalNote(note.id, { pinned: !note.pinned }); void saveNote({ ...note, pinned: !note.pinned }); }}>Pin</button><button title="Delete note" onClick={() => void deleteNote(note)}><Trash2 size={15} /></button></div><input className="note-title" aria-label="Note title" value={note.title} onChange={(event) => updateLocalNote(note.id, { title: event.target.value })} onBlur={(event) => void saveNote({ ...note, title: event.currentTarget.value })} /><textarea aria-label="Note body" value={note.body} onChange={(event) => updateLocalNote(note.id, { body: event.target.value })} onBlur={(event) => void saveNote({ ...note, body: event.currentTarget.value })} placeholder="Capture the thread" /></article>)}</div></section>
 
         <section className="panel trail"><div className="panel-head"><div><span>Trail</span><h2>Recent signals</h2></div></div>{state.sessions.length === 0 && <div className="empty">No signals yet.</div>}{state.sessions.map((session) => <article className="session" key={session.id}><div><strong>{session.intention || session.taskTitle || "Focused work"}</strong><span>{session.taskTitle ?? "Free focus"}</span></div><small>{minutes(session.durationMinutes)}</small></article>)}</section>
       </section>
